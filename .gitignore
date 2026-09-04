@@ -1,0 +1,59 @@
+# ─── OpenTofu ─────────────────────────────────────────────────────────────────
+.terraform
+.terraform.lock.hcl
+**/*.tfstate*
+*.tfplan
+*.tfplan.json
+plan.out
+*.out
+modules/**/.terraform.lock.hcl
+.external_modules
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+**/__pycache__/**
+venv
+.venv
+.venv-tools
+.venv-checkov
+*.egg-info/
+.coverage
+.reports
+coverage.xml
+.python-version
+
+# ─── IDE / OS ────────────────────────────────────────────────────────────────
+.vscode/
+*.DS_Store
+*.idea
+.idea
+
+# ─── Build artifacts ─────────────────────────────────────────────────────────
+**/lambdas-dependencies/python
+lambdas-dependencies.zip
+**/*.zip
+.lambda-builds
+**/*.plan
+
+# ─── Secrets / environment ───────────────────────────────────────────────────
+*.config.json
+env.sh
+config.ini
+.env
+*.tfvars
+!*.tfvars.example
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+.claude
+my-new-pipeline
+poetry.lock
+poetry.toml
+
+# ─── Supply-chain: track lockfiles for shipped/critical Python packages ──────
+# Reproducible container/deploy builds require the resolved dependency graph
+# to be committed. Carve out the paths whose Dockerfiles / deployment
+# pipelines depend on poetry.lock at build time.
+!code/shared/copy-intermediate-to-output/poetry.lock
+!examples/complex-example/code/ingest_raw_data/poetry.lock
+!examples/end-to-end/code/publish_report/poetry.lock
+!infra/modules/pipeline/lambdas/poetry.lock

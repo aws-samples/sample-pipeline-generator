@@ -1,0 +1,4 @@
+pytest-cov==7.1.0
+aws-lambda-powertools==3.31.1
+boto3==1.42.91
+pytest==9.0.3
