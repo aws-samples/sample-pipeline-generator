@@ -1,0 +1,10 @@
+{"sensor_id": "temp-sensor-01", "timestamp": "2026-04-22T08:00:00Z", "metric": "temperature_c", "value": 22.4, "location": "factory-floor-A"}
+{"sensor_id": "temp-sensor-01", "timestamp": "2026-04-22T08:00:05Z", "metric": "temperature_c", "value": 22.6, "location": "factory-floor-A"}
+{"sensor_id": "temp-sensor-01", "timestamp": "2026-04-22T08:00:10Z", "metric": "temperature_c", "value": 23.1, "location": "factory-floor-A"}
+{"sensor_id": "hum-sensor-01", "timestamp": "2026-04-22T08:00:00Z", "metric": "humidity_pct", "value": 45.2, "location": "factory-floor-A"}
+{"sensor_id": "hum-sensor-01", "timestamp": "2026-04-22T08:00:05Z", "metric": "humidity_pct", "value": 45.8, "location": "factory-floor-A"}
+{"sensor_id": "hum-sensor-01", "timestamp": "2026-04-22T08:00:10Z", "metric": "humidity_pct", "value": 46.1, "location": "factory-floor-A"}
+{"sensor_id": "vib-sensor-01", "timestamp": "2026-04-22T08:00:00Z", "metric": "vibration_hz", "value": 120.5, "location": "factory-floor-A"}
+{"sensor_id": "vib-sensor-01", "timestamp": "2026-04-22T08:00:05Z", "metric": "vibration_hz", "value": 121.3, "location": "factory-floor-A"}
+{"sensor_id": "vib-sensor-01", "timestamp": "2026-04-22T08:00:10Z", "metric": "vibration_hz", "value": 119.8, "location": "factory-floor-A"}
+{"sensor_id": "vib-sensor-01", "timestamp": "2026-04-22T08:00:15Z", "metric": "vibration_hz", "value": 122.0, "location": "factory-floor-A"}

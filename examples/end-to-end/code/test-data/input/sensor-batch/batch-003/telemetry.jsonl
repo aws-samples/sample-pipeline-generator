@@ -1,0 +1,7 @@
+{"sensor_id": "flow-sensor-01", "timestamp": "2026-04-22T08:00:00Z", "metric": "flow_rate_lpm", "value": 55.2, "location": "cooling-loop-C"}
+{"sensor_id": "flow-sensor-01", "timestamp": "2026-04-22T08:00:05Z", "metric": "flow_rate_lpm", "value": 54.8, "location": "cooling-loop-C"}
+{"sensor_id": "flow-sensor-01", "timestamp": "2026-04-22T08:00:10Z", "metric": "flow_rate_lpm", "value": 55.0, "location": "cooling-loop-C"}
+{"sensor_id": "flow-sensor-01", "timestamp": "2026-04-22T08:00:15Z", "metric": "flow_rate_lpm", "value": 55.4, "location": "cooling-loop-C"}
+{"sensor_id": "temp-sensor-03", "timestamp": "2026-04-22T08:00:00Z", "metric": "temperature_c", "value": 15.2, "location": "cooling-loop-C"}
+{"sensor_id": "temp-sensor-03", "timestamp": "2026-04-22T08:00:05Z", "metric": "temperature_c", "value": 15.3, "location": "cooling-loop-C"}
+{"sensor_id": "temp-sensor-03", "timestamp": "2026-04-22T08:00:10Z", "metric": "temperature_c", "value": 15.1, "location": "cooling-loop-C"}

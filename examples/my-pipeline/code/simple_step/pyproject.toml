@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "template-step"
+version = "1.1.0"
+description = "Template pipeline step"
+authors = ["<AUTHOR_NAME> <<AUTHOR_EMAIL>>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.14"
+boto3 = "1.28.57"
+aws-lambda-powertools = "3.29.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "7.4.0"
+pytest-cov = "6.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

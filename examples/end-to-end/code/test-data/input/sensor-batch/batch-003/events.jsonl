@@ -1,0 +1,1 @@
+{"event_id": "evt-006", "timestamp": "2026-04-22T08:00:03Z", "type": "maintenance_due", "sensor_id": "flow-sensor-01", "details": {"hours_since_last": 720, "threshold_hours": 720}}

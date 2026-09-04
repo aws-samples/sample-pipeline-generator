@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=../../infra/modules/pipeline/schemas/pipeline.schema.json
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+#
+# S3 parallel-middle test pipeline — a lambda step runs first, then the
+# parallel block discovers directories on the intermediate bucket from
+# the previous step's output.
+#
+#   prepare_data (lambda, writes to intermediate bucket)
+#     → Parallel-Block-Initialization (auto, discovers on intermediate)
+#     → fan_out (parallel, S3 discovery on intermediate/<exec_id>/prepare_data/)
+#         └─ process_item (lambda)
+#     → Pipeline-Completion-Notification (auto)
+
+pipeline_name: s3-parallel-middle
+
+buckets:
+  - intermediate
+
+tags:
+  UseCase: integration-test-shared-resources
+  Team: DevOps
+
+steps:
+  - name: prepare_data
+    type: lambda
+    lambda_timeout: 60
+    lambda_memory_size: 512
+
+  - name: fan_out
+    type: parallel
+    input:
+      type: s3
+    parallel_steps:
+      - name: process_item
+        type: lambda
+        lambda_timeout: 60
+        lambda_memory_size: 512

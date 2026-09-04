@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=../../infra/modules/pipeline/schemas/pipeline.schema.json
+
+pipeline_name: my-pipeline
+
+buckets:
+  - source
+  - intermediate
+  - output
+
+tags:
+  UseCase: my-use-case
+  Team: platform
+  CostCenter: "12345"
+
+
+pipeline_completion_emails:
+  - substitute.me@example.com
+
+capacity_provider: FARGATE_SPOT
+
+steps:
+  - name: 'simple_step'
+    type: batch
+    ram_mb: 2048
+    vcpu: 1
+    image_tag: latest
+    copy_to_target: true
+
+  - name: fan_out
+    type: parallel
+    input:
+      type: s3
+    parallel_steps:
+      - name: process_item
+        type: lambda
+        lambda_timeout: 60
+        lambda_memory_size: 512

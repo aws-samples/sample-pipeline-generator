@@ -1,0 +1,23 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+[tool.poetry]
+name = "score-chunk"
+version = "2.0.1"
+description = "Lambda step: score a transformed chunk inside the parallel Map block"
+authors = ["Amazon Web Services"]
+package-mode = false
+packages = []
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+boto3 = "1.43.59"
+aws-lambda-powertools = "3.31.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "9.1.1"
+pytest-cov = "6.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

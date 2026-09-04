@@ -1,0 +1,8 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+region           = "<REGION>"
+vpc_id           = "<VPC_ID>"
+subnet_ids       = ["<SUBNET_1>", "<SUBNET_2>"]
+ecr_force_delete = true
+environment      = "dev"

@@ -1,0 +1,7 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+bucket       = "terraform-state-bucket-<REGION>-<ACCOUNT_ID>"
+key          = "tf-s3-parallel-first.tfstate"
+region       = "<REGION>"
+use_lockfile = true

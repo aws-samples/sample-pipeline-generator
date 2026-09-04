@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=../../infra/modules/pipeline/schemas/pipeline.schema.json
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+#
+# S3 parallel-from-step test pipeline — tests the `from_step` option for S3
+# discovery. A lambda step writes subdirectories, then the parallel block
+# uses `from_step` to explicitly target that step's output for discovery.
+#
+#   prepare_data (lambda, writes subdirs to intermediate/<exec_id>/prepare_data/)
+#     → discover_sources (lambda, returns metadata about what was written)
+#     → Parallel-Block-Initialization (auto, discovers on intermediate/<exec_id>/prepare_data/)
+#     → fan_out (parallel, S3 discovery using from_step: prepare_data)
+#         └─ process_item (lambda)
+#     → Pipeline-Completion-Notification (auto)
+
+pipeline_name: s3-parallel-from-step
+
+buckets:
+  - intermediate
+
+tags:
+  UseCase: integration-test-shared-resources
+  Team: DevOps
+
+steps:
+  - name: prepare_data
+    type: lambda
+    lambda_timeout: 60
+    lambda_memory_size: 512
+
+  - name: discover_sources
+    type: lambda
+    lambda_timeout: 60
+    lambda_memory_size: 512
+
+  - name: fan_out
+    type: parallel
+    input:
+      type: s3
+      from_step: prepare_data
+    parallel_steps:
+      - name: process_item
+        type: lambda
+        lambda_timeout: 60
+        lambda_memory_size: 512

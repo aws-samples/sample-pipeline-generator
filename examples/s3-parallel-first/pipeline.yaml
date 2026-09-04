@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=../../infra/modules/pipeline/schemas/pipeline.schema.json
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+#
+# S3 parallel-first test pipeline — the parallel block is the first step.
+#
+# The Parallel-Block-Initialization Lambda discovers directories on the
+# source bucket using root_prefix from the execution payload.
+#
+#   Parallel-Block-Initialization (auto)
+#     → fan_out (parallel, S3 discovery on source bucket)
+#         └─ process_item (lambda)
+#     → Pipeline-Completion-Notification (auto)
+
+pipeline_name: s3-parallel-first
+
+buckets:
+  - source
+  - intermediate
+
+tags:
+  UseCase: integration-test-shared-resources
+  Team: DevOps
+
+steps:
+  - name: fan_out
+    type: parallel
+    input:
+      type: s3
+    parallel_steps:
+      - name: process_item
+        type: lambda
+        lambda_timeout: 60
+        lambda_memory_size: 512

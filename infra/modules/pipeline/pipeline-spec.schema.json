@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/aws-samples/simple-workflow-generator/blob/main/infra/modules/pipeline/pipeline-spec.schema.json",
+  "title": "Pipeline module input specification",
+  "description": "Machine-readable contract for the `pipeline` OpenTofu module inputs. Derived from `infra/modules/pipeline/variables.tf` (types, validations, defaults). Agents use this schema to validate a generated pipeline specification before writing files (`pipeline.yaml`, `inputs.tfvars`). Sibling schema `schemas/pipeline.schema.json` describes the `pipeline.yaml` on-disk shape; this schema describes the module boundary itself and stays in sync with `variables.tf`.",
+  "type": "object",
+  "required": [
+    "initialization",
+    "steps",
+    "vpc_id",
+    "subnet_ids",
+    "lambda_steps_code_path"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "initialization": {
+      "type": "object",
+      "description": "Configuration object from the pipeline-initialization module. Contains shared context (pipeline_name, environment, region, tags), bucket names/KMS key, SSM and Secrets Manager configuration.",
+      "required": ["pipeline_name", "environment", "region", "buckets"],
+      "additionalProperties": false,
+      "properties": {
+        "pipeline_name": { "type": "string", "minLength": 1 },
+        "environment": { "type": "string", "minLength": 1 },
+        "region": { "type": "string", "minLength": 1 },
+        "tags": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "default": {}
+        },
+        "buckets": {
+          "type": "object",
+          "required": ["names", "kms_key"],
+          "additionalProperties": false,
+          "properties": {
+            "names": {
+              "type": "object",
+              "description": "Map of bucket role to bucket name. The `intermediate` key is mandatory (see `variables.tf` validation).",
+              "additionalProperties": { "type": "string" },
+              "required": ["intermediate"]
+            },
+            "kms_key": { "type": ["string", "null"] }
+          }
+        },
+        "cloudwatch": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kms_key": { "type": ["string", "null"] }
+          },
+          "default": { "kms_key": null }
+        },
+        "ssm": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "prefix": { "type": ["string", "null"] },
+            "kms_key": { "type": ["string", "null"] },
+            "arns": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "default": {}
+            },
+            "external_arns": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": []
+            },
+            "external_kms_keys": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": []
+            }
+          }
+        },
+        "secrets": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "prefix": { "type": ["string", "null"] },
+            "kms_key": { "type": ["string", "null"] },
+            "arns": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "default": {}
+            },
+            "external_arns": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": []
+            },
+            "external_kms_keys": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": []
+            }
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered list of pipeline steps. Regular step types: `batch`, `lambda`. Special type: `parallel` — contains a nested `parallel_steps` list of compute steps run inside a Step Functions Map state. At most one parallel block is allowed per pipeline.",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/batch_step" },
+          { "$ref": "#/$defs/lambda_step" },
+          { "$ref": "#/$defs/parallel_step" }
+        ]
+      }
+    },
+    "capacity_provider": {
+      "type": "string",
+      "enum": ["FARGATE", "FARGATE_SPOT"],
+      "default": "FARGATE",
+      "description": "Capacity provider for AWS Batch. `FARGATE` for on-demand, `FARGATE_SPOT` for cost-optimized spot."
+    },
+    "max_vcpus": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 256,
+      "default": 256,
+      "description": "AWS Batch maximum vcpus across all running jobs. `variables.tf` enforces `< 257`."
+    },
+    "vpc_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "VPC ID for the Batch compute environment."
+    },
+    "subnet_ids": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "Subnet IDs for the Batch compute environment. Use at least two for AZ redundancy."
+    },
+    "cw_retention_days": {
+      "type": "integer",
+      "minimum": 15,
+      "maximum": 730,
+      "default": 365,
+      "description": "Shared value for CloudWatch Logs retention days. Must be between 15 and 730 (matches the module's OpenTofu validation)."
+    },
+    "ecr_force_delete": {
+      "type": "boolean",
+      "default": true,
+      "description": "ECR delete even if images are present. Set `true` only in dev."
+    },
+    "ecr_scan_on_push": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable Amazon ECR basic scanning on image push."
+    },
+    "ecr_keep_tagged_count": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "default": 3,
+      "description": "Keep the N most recently pushed tagged images (in addition to `latest`). `null` disables the rule."
+    },
+    "ecr_expire_untagged_days": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "default": 7,
+      "description": "Expire untagged ECR images after this many days. `null` disables."
+    },
+    "ecr_archive_unpulled_days": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "default": 90,
+      "description": "Transition ECR images to archive storage when not pulled for this many days. `null` disables."
+    },
+    "max_concurrency": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Maximum concurrency for the parallel Map step. `0` means unlimited."
+    },
+    "copy_to_target_ecr_url": {
+      "type": "string",
+      "default": "",
+      "description": "ECR URL for the copy-intermediate-to-output container. Read from SSM by callers."
+    },
+    "pipeline_completion_emails": {
+      "type": "array",
+      "items": { "type": "string", "format": "email" },
+      "default": [],
+      "description": "Email addresses subscribed to the pipeline completion SNS topic."
+    },
+    "lambda_steps_code_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Absolute path to the directory containing lambda step subdirectories. Callers must pass an absolute path using `path.module`."
+    },
+    "sg_compute_additional": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/sg_egress_rule" },
+      "default": [],
+      "description": "Additional egress rules for the batch/lambda compute security groups."
+    },
+    "additional_tags": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "default": {},
+      "description": "Additional tags applied to every resource created by the module."
+    }
+  },
+  "allOf": [
+    {
+      "description": "At most one parallel block is allowed (validation: `length([for step in var.steps : step if step.type == \"parallel\"]) <= 1`).",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "minContains": 0,
+          "maxContains": 1,
+          "contains": {
+            "type": "object",
+            "properties": { "type": { "const": "parallel" } },
+            "required": ["type"]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "step_name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_]*$",
+      "description": "Alphanumeric and underscores only. Becomes an ECR repo suffix, a Step Functions state name, a `code/<step>/` directory, and the state key `$.<name>_result`. No hyphens — S3/ECR naming rules downstream."
+    },
+    "runtime_parameters": {
+      "type": "object",
+      "description": "Key-value pairs passed as env vars (batch) or payload fields (lambda) from the execution input. Values must be non-empty strings.",
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "default": {}
+    },
+    "batch_step": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/step_name" },
+        "type": { "const": "batch" },
+        "ram_mb": { "type": "integer", "minimum": 512, "default": 2048 },
+        "vcpu": { "type": "integer", "minimum": 1, "default": 1 },
+        "image_tag": { "type": "string", "minLength": 1, "default": "latest" },
+        "ecr_repository_url": {
+          "type": ["string", "null"],
+          "description": "External ECR repository URL. Omit (or set null) to have the module create a dedicated repo `<pipeline>-<env>-<step>`.",
+          "default": null
+        },
+        "runtime_parameters": { "$ref": "#/$defs/runtime_parameters" },
+        "copy_to_target": {
+          "type": "boolean",
+          "default": false,
+          "description": "Copy this step's intermediate output to the `output` bucket after the pipeline completes. Requires the `output` bucket in `initialization.buckets.names`."
+        }
+      }
+    },
+    "lambda_step": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/step_name" },
+        "type": { "const": "lambda" },
+        "runtime_parameters": { "$ref": "#/$defs/runtime_parameters" },
+        "lambda_timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 900,
+          "default": 900,
+          "description": "Timeout in seconds. Lambda hard-caps at 900."
+        },
+        "lambda_memory_size": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 10240,
+          "default": 2048
+        },
+        "lambda_ephemeral_storage": {
+          "type": "integer",
+          "minimum": 512,
+          "maximum": 10240,
+          "default": 512
+        },
+        "lambda_layers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      }
+    },
+    "parallel_step": {
+      "type": "object",
+      "required": ["name", "type", "input", "parallel_steps"],
+      "additionalProperties": false,
+      "description": "Step Functions Map block. `variables.tf` requires `parallel_steps` non-empty and `input` present; `input.type` must be `s3` or `custom`; if `input.from_step` is set it must reference a preceding compute step; `custom` + `from_step` requires `field`; nested steps must be `batch` or `lambda`.",
+      "properties": {
+        "name": { "$ref": "#/$defs/step_name" },
+        "type": { "const": "parallel" },
+        "input": {
+          "type": "object",
+          "required": ["type"],
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["s3", "custom"]
+            },
+            "from_step": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "Name of a preceding `batch` or `lambda` step whose output supplies the fan-out data."
+            },
+            "root_prefix": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "S3 prefix for discovery (`type=s3`). With `from_step` defaults to `<execution_id>/<from_step>/`."
+            },
+            "field": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "Dot-notation field in the referenced step's output (`type=custom` with `from_step`)."
+            }
+          },
+          "allOf": [
+            {
+              "description": "`type: custom` with `from_step` requires `field`.",
+              "if": {
+                "properties": {
+                  "type": { "const": "custom" },
+                  "from_step": { "type": "string", "minLength": 1 }
+                },
+                "required": ["type", "from_step"]
+              },
+              "then": {
+                "required": ["field"],
+                "properties": {
+                  "field": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          ]
+        },
+        "parallel_steps": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Compute steps to run inside the Map. Only `batch` or `lambda`.",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/batch_step" },
+              { "$ref": "#/$defs/lambda_step" }
+            ]
+          }
+        }
+      }
+    },
+    "sg_egress_rule": {
+      "type": "object",
+      "required": ["from_port", "to_port", "protocol", "cidr_blocks"],
+      "additionalProperties": false,
+      "properties": {
+        "from_port": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "to_port": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "protocol": { "type": "string", "minLength": 1 },
+        "cidr_blocks": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}
