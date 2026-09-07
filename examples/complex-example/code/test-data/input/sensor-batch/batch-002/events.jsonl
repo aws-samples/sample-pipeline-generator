@@ -1,0 +1,2 @@
+{"event_id": "evt-004", "timestamp": "2026-04-22T08:00:08Z", "type": "calibration_check", "sensor_id": "pres-sensor-01", "details": {"drift_pct": 0.1}}
+{"event_id": "evt-005", "timestamp": "2026-04-22T08:00:20Z", "type": "anomaly_detected", "sensor_id": "temp-sensor-02", "details": {"expected": 19.5, "actual": 20.3, "deviation_pct": 4.1}}

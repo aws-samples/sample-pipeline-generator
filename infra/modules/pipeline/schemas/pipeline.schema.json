@@ -1,0 +1,159 @@
+{
+  "title": "Pipeline Definition",
+  "description": "Full pipeline definition including metadata, infrastructure configuration, and step definitions. This YAML file is the single source of truth for a pipeline — environment-specific values (VPC, subnets) remain in tfvars.",
+  "type": "object",
+  "required": ["pipeline_name", "steps"],
+  "additionalProperties": false,
+  "properties": {
+    "pipeline_name": {
+      "type": "string",
+      "description": "Unique name for this pipeline. Used in resource naming across S3, Step Functions, Batch, etc."
+    },
+    "buckets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["source", "intermediate", "output"]
+      },
+      "default": ["intermediate"],
+      "uniqueItems": true,
+      "description": "S3 bucket types to create. 'intermediate' is always required."
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "default": {},
+      "description": "Tags to apply to all pipeline resources."
+    },
+    "pipeline_completion_emails": {
+      "type": "array",
+      "items": { "type": "string", "format": "email" },
+      "default": [],
+      "description": "Email addresses to notify on pipeline completion."
+    },
+    "capacity_provider": {
+      "type": "string",
+      "enum": ["FARGATE", "FARGATE_SPOT"],
+      "default": "FARGATE",
+      "description": "Batch compute capacity provider. Use 'FARGATE' for on-demand or 'FARGATE_SPOT' for cost-optimized spot instances."
+    },
+    "max_concurrency": {
+      "type": "number",
+      "default": 0,
+      "description": "Maximum concurrency for the parallel Map step. 0 means unlimited."
+    },
+    "cw_retention_days": {
+      "type": "number",
+      "default": 365,
+      "minimum": 15,
+      "maximum": 730,
+      "description": "CloudWatch Logs retention in days. Must be between 15 and 730 (matches the module's OpenTofu validation)."
+    },
+    "ssm_parameters": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "SSM parameter names to create as placeholders under /pipelines/<pipeline_name>-<env>/params/<name>."
+    },
+    "secrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" }
+        }
+      },
+      "default": [],
+      "description": "Secrets Manager secrets to create as placeholders."
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/batch_step" },
+          { "$ref": "#/$defs/lambda_step" },
+          { "$ref": "#/$defs/parallel_step" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "batch_step": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_]*$", "description": "Unique name. Only alphanumeric and underscores allowed (no hyphens). Result stored at $.<name>_result automatically." },
+        "type": { "const": "batch", "description": "Step type: AWS Batch job" },
+        "ram_mb": { "type": "number", "default": 2048, "description": "Memory in MB" },
+        "vcpu": { "type": "number", "default": 1, "description": "Number of vCPUs" },
+        "image_tag": { "type": "string", "default": "latest", "description": "Container image tag" },
+        "ecr_repository_url": { "type": "string", "description": "External ECR URL. Omit to auto-create." },
+        "runtime_parameters": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "default": {}, "description": "Key-value pairs passed as env vars from execution input" },
+        "copy_to_target": { "type": "boolean", "default": false, "description": "Copy output to target bucket" }
+      }
+    },
+    "lambda_step": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_]*$", "description": "Unique name. Only alphanumeric and underscores allowed (no hyphens). Result stored at $.<name>_result automatically." },
+        "type": { "const": "lambda", "description": "Step type: AWS Lambda function" },
+        "runtime_parameters": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "default": {}, "description": "Key-value pairs passed as payload fields from execution input" },
+        "lambda_timeout": { "type": "number", "default": 900, "description": "Lambda timeout in seconds (max 900)" },
+        "lambda_memory_size": { "type": "number", "default": 2048, "description": "Lambda memory in MB" },
+        "lambda_ephemeral_storage": { "type": "number", "default": 512, "description": "Lambda ephemeral storage in MB" },
+        "lambda_layers": { "type": "array", "items": { "type": "string" }, "default": [], "description": "Additional Lambda layer ARNs" }
+      }
+    },
+    "parallel_step": {
+      "type": "object",
+      "required": ["name", "type", "input", "parallel_steps"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_]*$", "description": "Unique name. Only alphanumeric and underscores allowed (no hyphens). Map results stored at $.<name>_result automatically." },
+        "type": { "const": "parallel", "description": "Step type: Map block that fans out over an array" },
+        "input": {
+          "type": "object",
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "Input configuration for the parallel block. Determines how the fan-out array is resolved.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["s3", "custom"],
+              "description": "Input type: 's3' for S3 directory discovery, 'custom' for passthrough values from execution payload or a previous step's output."
+            },
+            "from_step": {
+              "type": "string",
+              "description": "Name of a preceding compute step whose output provides the fan-out data. When omitted and the parallel block is not the first step, defaults to the last preceding compute step's intermediate output."
+            },
+            "root_prefix": {
+              "type": "string",
+              "description": "S3 prefix to discover directories under. Required when the parallel block is the first step (type=s3, no from_step). With from_step, defaults to <execution_id>/<from_step>/."
+            },
+            "field": {
+              "type": "string",
+              "description": "Dot-notation field path within the previous step's output that holds the array (type=custom with from_step). The referenced step must be a lambda step."
+            }
+          }
+        },
+        "parallel_steps": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Compute steps to run inside the Map.",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/batch_step" },
+              { "$ref": "#/$defs/lambda_step" }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

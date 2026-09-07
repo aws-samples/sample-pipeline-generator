@@ -1,0 +1,3 @@
+{"event_id": "evt-001", "timestamp": "2026-04-22T08:00:02Z", "type": "threshold_breach", "sensor_id": "temp-sensor-01", "details": {"threshold": 23.0, "actual": 23.1}}
+{"event_id": "evt-002", "timestamp": "2026-04-22T08:00:12Z", "type": "calibration_check", "sensor_id": "hum-sensor-01", "details": {"drift_pct": 0.3}}
+{"event_id": "evt-003", "timestamp": "2026-04-22T08:00:15Z", "type": "threshold_breach", "sensor_id": "vib-sensor-01", "details": {"threshold": 121.5, "actual": 122.0}}

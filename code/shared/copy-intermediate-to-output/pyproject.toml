@@ -1,0 +1,23 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+[tool.poetry]
+name = "copy-intermediate-to-output"
+version = "0.4.4"
+description = "Copy data from intermediate bucket to output bucket"
+authors = ["Amazon Web Services"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+aws-lambda-powertools = "3.31.1"
+boto3 = "1.43.55"
+
+[tool.poetry.group.test.dependencies]
+pytest = "9.1.1"
+pytest-cov = "6.3.0"
+moto = {extras = ["s3"], version = "5.2.2"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

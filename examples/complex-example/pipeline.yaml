@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=../../infra/modules/pipeline/schemas/pipeline.schema.json
+#
+# Complex test pipeline — exercises the maximum number of features and edge cases:
+#
+#   Parallel-Block-Initialization (auto, before parallel block)
+#     → ingest_raw_data          (batch, runtime_parameters, custom resources)
+#     → validate_ingestion       (lambda, runtime_parameters, custom layers, ephemeral storage)
+#     → split_workload           (lambda, produces the array for the parallel block)
+#     → Parallel-Block-Initialization (auto, resolves fan-out array)
+#     → fan_out_processing       (parallel over split_workload output)
+#         ├─ transform_chunk     (batch inside parallel, runtime_parameters)
+#         └─ score_chunk         (lambda inside parallel)
+#     → aggregate_results        (batch, copy_to_target)
+#     → publish_report           (lambda, final step)
+#     → Copy-To-Output (auto, triggered by copy_to_target on aggregate_results)
+#     → Pipeline-Completion-Notification (auto)
+
+pipeline_name: complex-example
+
+buckets:
+  - source
+  - intermediate
+  - output
+
+tags:
+  UseCase: my-use-case
+  Team: platform
+  CostCenter: "12345"
+
+pipeline_completion_emails:
+  - substitute.me@example.com
+  - substitute.me@example.com
+
+max_concurrency: 10
+
+capacity_provider: FARGATE_SPOT
+
+cw_retention_days: 365
+
+ssm_parameters:
+  - API_ENDPOINT
+  - MODEL_VERSION
+  - FEATURE_FLAGS
+
+secrets:
+  - name: DB_CONNECTION_STRING
+  - name: EXTERNAL_API_KEY
+
+steps:
+  # ── 1. Batch step with custom resources and runtime parameters ──
+  - name: ingest_raw_data
+    type: batch
+    ram_mb: 4096
+    vcpu: 2
+    image_tag: latest
+    runtime_parameters:
+      SOURCE_SYSTEM: "source_system"
+      INGESTION_MODE: "ingestion_mode"
+
+  # ── 2. Lambda step with custom config, layers, and runtime parameters ──
+  - name: validate_ingestion
+    type: lambda
+    lambda_timeout: 300
+    lambda_memory_size: 1024
+    lambda_ephemeral_storage: 1024
+    runtime_parameters:
+      VALIDATION_PROFILE: "validation_profile"
+
+  # ── 3. Lambda that produces the array for the parallel block ──
+  - name: split_workload
+    type: lambda
+    lambda_timeout: 600
+    lambda_memory_size: 2048
+
+  # ── 4. Parallel block: fans out over split_workload output ──
+  #    Contains both batch and lambda inner steps chained sequentially
+  - name: fan_out_processing
+    type: parallel
+    input:
+      type: custom
+      from_step: split_workload
+      field: chunks
+    parallel_steps:
+      - name: transform_chunk
+        type: batch
+        ram_mb: 8192
+        vcpu: 4
+        image_tag: latest
+        runtime_parameters:
+          TRANSFORM_CONFIG: "transform_config"
+      - name: score_chunk
+        type: lambda
+        lambda_timeout: 900
+        lambda_memory_size: 3008
+        lambda_ephemeral_storage: 2048
+
+  # ── 5. Post-parallel batch step with copy_to_target ──
+  - name: aggregate_results
+    type: batch
+    ram_mb: 4096
+    vcpu: 2
+    image_tag: latest
+    copy_to_target: true
+
+  # ── 6. Final lambda step ──
+  - name: publish_report
+    type: lambda
+    lambda_timeout: 120
+    lambda_memory_size: 512
+    runtime_parameters:
+      REPORT_FORMAT: "report_format"
+      DISTRIBUTION_LIST: "distribution_list"
