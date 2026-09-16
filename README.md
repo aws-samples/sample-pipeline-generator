@@ -242,10 +242,11 @@ Repository-wide checks, all run from the root via the top-level [`Makefile`](Mak
 
 | Target | What it does | AWS credentials |
 |--------|--------------|-----------------|
+| `make check-locks` | `poetry check --lock` for every committed `poetry.lock` | no |
 | `make unit-tests-all` | pytest for every git-tracked example step | no |
 | `make checkov-modules` | Checkov over `infra/modules/` and `infra/deployments/` | no |
 | `make pre-commit-checks` | every pre-commit hook against all files | no |
-| `make verify` | the three above, in order | no |
+| `make verify` | the four above, in order | no |
 | `make checkov-examples` | plans each example, then Checkov-scans the plan JSON | yes |
 | `make checkov-all` | `checkov-modules` + `checkov-examples` | yes |
 | `make integration-tests` | the [`tests/integration`](tests/integration/README.md) suite against deployed pipelines | yes |

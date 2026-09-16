@@ -8,7 +8,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 RUN pip install --no-cache-dir "poetry==1.8.3" && \
     poetry config virtualenvs.create false && \
-    poetry install --only=main --no-root --sync && \
+    poetry install --only=main --no-root && \
     pip uninstall -y poetry && \
     rm -rf /root/.cache
 

@@ -107,6 +107,16 @@ The step `pyproject.toml` files in `examples/my-pipeline/` currently target `>=3
 
 Do not delete `poetry.lock` — that produces non-reproducible test runs.
 
+### A target fails with `pyproject.toml changed significantly since poetry.lock was last generated`
+
+The committed lock no longer matches its `pyproject.toml`, so `poetry check --lock` rejects it. Refresh the hash without moving any dependency versions:
+
+```bash
+cd <package> && poetry lock --no-update
+```
+
+Plain `poetry lock` also clears the error but bumps transitive dependencies to whatever is newest, which changes what the container image ships. Prefer `--no-update` unless you intend a dependency update. Run `make check-locks` to confirm all four committed locks are current.
+
 ### `check-jsonschema` complains that `pipeline.yaml` uses an unknown field
 
 The schema in `infra/modules/pipeline/schemas/pipeline.schema.json` is the source of truth. New fields must be added there first, then to the module `variables.tf`. If you legitimately need a field the schema does not accept, extend the schema in a separate commit and re-run pre-commit.
