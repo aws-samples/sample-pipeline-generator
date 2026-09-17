@@ -281,6 +281,21 @@ run "vpc_created_by_default" {
 run "vpc_skipped_when_provided" {
   command = plan
 
+  # On the existing-VPC path the deployment reads the VPC back for its CIDR
+  # blocks; override it so the test stays hermetic under mock credentials.
+  override_data {
+    target = data.aws_vpc.existing
+    values = {
+      cidr_block_associations = [
+        {
+          association_id = "vpc-cidr-assoc-0123456789abcdef0"
+          cidr_block     = "10.0.0.0/16"
+          state          = "associated"
+        }
+      ]
+    }
+  }
+
   variables {
     vpc_id          = "vpc-0123456789abcdef0"
     subnet_ids      = ["subnet-0123456789abcdef0"]
@@ -290,6 +305,11 @@ run "vpc_skipped_when_provided" {
   assert {
     condition     = length(aws_vpc.main) == 0
     error_message = "No VPC must be created when var.vpc_id is supplied"
+  }
+
+  assert {
+    condition     = local.resolved_vpc_cidr_blocks == ["10.0.0.0/16"]
+    error_message = "Existing-VPC CIDR blocks must be resolved from the data source"
   }
 
   assert {

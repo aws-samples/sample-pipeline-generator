@@ -53,7 +53,7 @@ resource "aws_kms_key" "ecr" {
   policy                  = data.aws_iam_policy_document.ecr_kms.json
 
   tags = {
-    Repo        = "simple-workflow-generator"
+    Repo        = "sample-pipeline-generator"
     Environment = "OpenTofu Tests"
   }
 }
@@ -93,7 +93,7 @@ resource "aws_ecr_repository" "batch_repos" {
   }
 
   tags = {
-    Repo        = "simple-workflow-generator"
+    Repo        = "sample-pipeline-generator"
     Environment = "OpenTofu Tests"
   }
 }

@@ -19,6 +19,18 @@ locals {
   resolved_vpc_id          = local.create_vpc ? aws_vpc.main[0].id : var.vpc_id
   resolved_subnet_ids      = local.create_vpc ? aws_subnet.private[*].id : var.subnet_ids
   resolved_route_table_ids = local.create_vpc ? [aws_route_table.private[0].id] : var.route_table_ids
+
+  # CIDR blocks for the interface-endpoint security group ingress. When we create
+  # the VPC this is the configured CIDR (known at plan time); when reusing an
+  # existing VPC we read them from the data source below.
+  resolved_vpc_cidr_blocks = local.create_vpc ? [var.vpc_cidr] : [for assoc in data.aws_vpc.existing[0].cidr_block_associations : assoc.cidr_block]
+}
+
+# Only read back an existing VPC when the caller supplied one. This data source
+# never runs on the VPC-creating path, so it cannot depend on an unknown id.
+data "aws_vpc" "existing" {
+  count = local.create_vpc ? 0 : 1
+  id    = var.vpc_id
 }
 
 resource "aws_vpc" "main" {

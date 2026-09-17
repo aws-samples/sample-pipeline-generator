@@ -10,6 +10,7 @@ variables {
   vpc_id              = "vpc-0123456789abcdef0"
   vpc_subnet_ids      = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef1"]
   vpc_route_table_ids = ["rtb-0123456789abcdef0"]
+  vpc_cidr_blocks     = ["10.0.0.0/16"]
 }
 
 # All runs are plan-mode with the sole data source overridden, so no real AWS access is needed.
@@ -88,19 +89,6 @@ run "no_endpoints_creates_nothing" {
 run "gateway_only_endpoints_skip_security_group" {
   command = plan
 
-  override_data {
-    target = data.aws_vpc.selected
-    values = {
-      cidr_block_associations = [
-        {
-          association_id = "vpc-cidr-assoc-0123456789abcdef0"
-          cidr_block     = "10.0.0.0/16"
-          state          = "associated"
-        }
-      ]
-    }
-  }
-
   variables {
     vpc_endpoints = ["s3", "dynamodb"]
   }
@@ -138,19 +126,6 @@ run "gateway_only_endpoints_skip_security_group" {
 
 run "endpoint_aliases_expand_and_split_by_type" {
   command = plan
-
-  override_data {
-    target = data.aws_vpc.selected
-    values = {
-      cidr_block_associations = [
-        {
-          association_id = "vpc-cidr-assoc-0123456789abcdef0"
-          cidr_block     = "10.0.0.0/16"
-          state          = "associated"
-        }
-      ]
-    }
-  }
 
   variables {
     vpc_endpoints = ["s3", "ecr", "cloudwatch", "stepfunctions"]
@@ -210,19 +185,6 @@ run "endpoint_aliases_expand_and_split_by_type" {
 run "interface_endpoints_create_security_group" {
   command = plan
 
-  override_data {
-    target = data.aws_vpc.selected
-    values = {
-      cidr_block_associations = [
-        {
-          association_id = "vpc-cidr-assoc-0123456789abcdef0"
-          cidr_block     = "10.0.0.0/16"
-          state          = "associated"
-        }
-      ]
-    }
-  }
-
   variables {
     vpc_endpoints = ["ecr"]
   }
@@ -250,5 +212,19 @@ run "interface_endpoints_create_security_group" {
   assert {
     condition     = contains(one(aws_security_group.vpc_endpoints[0].ingress[*].cidr_blocks), "10.0.0.0/16")
     error_message = "HTTPS ingress must be scoped to the VPC CIDR blocks"
+  }
+}
+
+run "security_group_ingress_uses_provided_cidr_blocks" {
+  command = plan
+
+  variables {
+    vpc_endpoints   = ["ecr"]
+    vpc_cidr_blocks = ["10.1.0.0/16", "10.2.0.0/16"]
+  }
+
+  assert {
+    condition     = one(aws_security_group.vpc_endpoints[0].ingress[*].cidr_blocks) == tolist(["10.1.0.0/16", "10.2.0.0/16"])
+    error_message = "HTTPS ingress must be scoped to the provided vpc_cidr_blocks"
   }
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/aws-samples/simple-workflow-generator/blob/main/infra/modules/pipeline/pipeline-spec.schema.json",
+  "$id": "https://github.com/aws-samples/sample-pipeline-generator/blob/main/infra/modules/pipeline/pipeline-spec.schema.json",
   "title": "Pipeline module input specification",
   "description": "Machine-readable contract for the `pipeline` OpenTofu module inputs. Derived from `infra/modules/pipeline/variables.tf` (types, validations, defaults). Agents use this schema to validate a generated pipeline specification before writing files (`pipeline.yaml`, `inputs.tfvars`). Sibling schema `schemas/pipeline.schema.json` describes the `pipeline.yaml` on-disk shape; this schema describes the module boundary itself and stays in sync with `variables.tf`.",
   "type": "object",

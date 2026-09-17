@@ -26,6 +26,7 @@ module "bootstrap" {
   vpc_id              = "vpc-0123456789abcdef0"
   vpc_subnet_ids      = ["subnet-aaa", "subnet-bbb"]
   vpc_route_table_ids = ["rtb-aaa", "rtb-bbb"]
+  vpc_cidr_blocks     = ["10.0.0.0/16"]   # scopes HTTPS ingress on the endpoint SG
   vpc_endpoints       = ["s3", "ecr", "dynamodb", "stepfunctions"]
 
   tags = {
@@ -67,7 +68,6 @@ No modules.
 | aws_security_group.vpc_endpoints | resource |
 | aws_vpc_endpoint.gateway | resource |
 | aws_vpc_endpoint.interface | resource |
-| aws_vpc.selected | data source |
 
 ## Inputs
 
@@ -75,6 +75,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_region"></a> [region](#input\_region) | AWS Region for VPC endpoint service names | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to module resources. Must include a non-empty 'Owner' key. | `map(string)` | n/a | yes |
+| <a name="input_vpc_cidr_blocks"></a> [vpc\_cidr\_blocks](#input\_vpc\_cidr\_blocks) | CIDR blocks of the VPC, used to scope HTTPS ingress on the interface-endpoint security group. Required when vpc\_endpoints requests any interface endpoint. | `list(string)` | `[]` | no |
 | <a name="input_vpc_endpoints"></a> [vpc\_endpoints](#input\_vpc\_endpoints) | List of endpoint types to create. Supported values: s3, ecr, dynamodb, stepfunctions, cloudwatch, ssm, secretsmanager | `list(string)` | `[]` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC where endpoints will be created. Required when vpc\_endpoints is non-empty. | `string` | `null` | no |
 | <a name="input_vpc_route_table_ids"></a> [vpc\_route\_table\_ids](#input\_vpc\_route\_table\_ids) | List of route table IDs for gateway VPC endpoints (S3, DynamoDB) | `list(string)` | `[]` | no |

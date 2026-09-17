@@ -65,11 +65,6 @@ locals {
   create_endpoints = length(var.vpc_endpoints) > 0
 }
 
-data "aws_vpc" "selected" {
-  count = local.create_endpoints ? 1 : 0
-  id    = var.vpc_id
-}
-
 # ──────────────────────────────────────────────
 # Security group for interface endpoints
 # ──────────────────────────────────────────────
@@ -89,7 +84,7 @@ resource "aws_security_group" "vpc_endpoints" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [for assoc in data.aws_vpc.selected[0].cidr_block_associations : assoc.cidr_block]
+    cidr_blocks = var.vpc_cidr_blocks
   }
 
   tags = merge(var.tags, {

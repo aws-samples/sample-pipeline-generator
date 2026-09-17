@@ -32,6 +32,12 @@ variable "vpc_subnet_ids" {
   default     = []
 }
 
+variable "vpc_cidr_blocks" {
+  description = "CIDR blocks of the VPC, used to scope HTTPS ingress on the interface-endpoint security group. Required when vpc_endpoints requests any interface endpoint."
+  type        = list(string)
+  default     = []
+}
+
 variable "vpc_route_table_ids" {
   description = "List of route table IDs for gateway VPC endpoints (S3, DynamoDB)"
   type        = list(string)

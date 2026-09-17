@@ -1,6 +1,6 @@
 <!-- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. SPDX-License-Identifier: MIT-0 -->
 
-# simple-workflow-generator
+# sample-pipeline-generator
 
 Easily deployable, YAML-driven data processing pipelines on AWS. Every pipeline is declared in a single `pipeline.yaml` and materialized as a Step Functions state machine that orchestrates AWS Batch (Fargate / Fargate Spot), AWS Lambda, S3 data flow, parallel fan-out, structured logging, and distributed tracing — no orchestration code required.
 
@@ -127,7 +127,7 @@ Two Makefiles drive the repository — the top-level [`Makefile`](Makefile) for 
 |------|---------|---------|
 | [OpenTofu](https://opentofu.org/) | `>= 1.8` | Terraform-compatible IaC (all modules pin `terraform { required_version >= 1.8 }`) |
 | AWS CLI | `>= 2.0` | Auth, S3 bucket bootstrap, ECR login |
-| Python | `3.12+` | Step code (each step's `pyproject.toml` declares `>=3.10`; most cap at `<4.0`, one at `<3.14`) |
+| Python | `3.13` | Step code (each step's `pyproject.toml` pins `>=3.13,<3.14`, matching the `python:3.13-slim` build image and `python3.13` Lambda runtime) |
 | Poetry | `>= 1.7` | Python dependency management for step code |
 | Container runtime | any of `docker`, `finch`, `podman` | Image builds; select with `CONTAINER_RUNTIME=<tool>` |
 | [`terraform-docs`](https://terraform-docs.io/) | latest | Auto-injects the input/output table into each module README (pre-commit hook) |
