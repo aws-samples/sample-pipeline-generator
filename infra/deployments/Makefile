@@ -119,6 +119,7 @@ unit-tests-shared: ## Run unit tests for the shared step (isolated in a Python v
 	. $(VENV_DIR)/bin/activate && \
 	python -m pip install --upgrade "pip==$(PIP_VERSION)" "poetry==$(POETRY_VERSION)" && \
 	poetry config virtualenvs.create false --local && \
+	poetry check --lock && \
 	poetry install && \
 	poetry run pytest --cov --cov-fail-under=0 --cov-report=term-missing
 

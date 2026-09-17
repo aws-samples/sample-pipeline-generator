@@ -152,8 +152,8 @@ Every target name here is confirmed against `Makefile` and `infra/deployments/Ma
   - Python (non-test): `bandit -c .bandit -r <path>`.
   - GitHub workflows: `actionlint <path>`.
   - Fix every finding, or suppress with a rule ID + written justification.
-- **Pre-commit hooks are the ground truth.** Run `make pre-commit-checks` (equivalently `pre-commit run --all-files`) before requesting a commit; CI runs the same checks. Never `--no-verify`.
-- **Repo-wide gate.** `make verify` chains `unit-tests-all`, `checkov-modules`, and `pre-commit-checks` and needs no AWS credentials — run it before declaring a multi-file change done. `make integration-tests` covers the deployed-pipeline suites and does need credentials.
+- **Pre-commit hooks are the ground truth.** Run `make pre-commit-checks` (equivalently `pre-commit run --all-files`) before requesting a commit. Never `--no-verify`.
+- **Repo-wide gate.** `make verify` chains `check-locks`, `unit-tests-all`, `checkov-modules`, and `pre-commit-checks` and needs no AWS credentials — run it before declaring a multi-file change done. `make integration-tests` covers the deployed-pipeline suites and does need credentials.
 
 ## Fast pointers
 

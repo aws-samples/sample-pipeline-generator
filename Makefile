@@ -77,7 +77,7 @@ endif
         build-all-images check-all-image-versions push-all-images-local update-all-parameter-stores deploy-all-images \
         deploy deploy-image \
         tools-venv unit-tests-all integration-tests checkov-install checkov-modules checkov-examples checkov-all \
-        pre-commit-checks verify
+        check-locks pre-commit-checks verify
 
 help: ## Show this help message
 	@echo "Build, test, deploy code and infrastructure"
@@ -86,9 +86,10 @@ help: ## Show this help message
 	@echo ""
 	@echo "Quality gates (no AWS credentials required):"
 	@echo "  unit-tests-all          Run pytest for every example step"
+	@echo "  check-locks             Verify committed poetry.lock files are current"
 	@echo "  checkov-modules         Checkov scan of the platform OpenTofu modules"
 	@echo "  pre-commit-checks       Run all pre-commit hooks on all files"
-	@echo "  verify                  unit-tests-all + checkov-modules + pre-commit-checks"
+	@echo "  verify                  check-locks + unit-tests-all + checkov-modules + pre-commit-checks"
 	@echo ""
 	@echo "Quality gates (AWS credentials required):"
 	@echo "  checkov-examples        Checkov scan of every example tofu plan"
@@ -275,6 +276,25 @@ _TRACKED_EXAMPLES = $(sort $(shell git ls-files $(EXAMPLES_DIR) 2>/dev/null | cu
 # run against the tools venv.
 _TESTABLE_STEPS = $(sort $(patsubst %/tests,%,$(wildcard $(foreach e,$(_TRACKED_EXAMPLES),$(EXAMPLES_DIR)/$(e)/code/*/tests))))
 
+# Only the locks re-included in .gitignore are committed, because container
+# builds install from them; discovery follows that allowlist automatically.
+_TRACKED_LOCKS = $(sort $(shell git ls-files '*poetry.lock' 2>/dev/null))
+
+check-locks: tools-venv ## Verify every committed poetry.lock matches its pyproject.toml
+	@$(TOOLS_BIN)/python -m pip install --quiet "poetry==$(POETRY_VERSION)"
+	@failed=""; \
+	for lock in $(_TRACKED_LOCKS); do \
+		pkg=$$(dirname $$lock); \
+		$(TOOLS_BIN)/poetry check --lock -C $$pkg >/dev/null 2>&1 \
+			|| failed="$$failed $$pkg"; \
+	done; \
+	if [ -n "$$failed" ]; then \
+		echo "✗ Stale poetry.lock:$$failed"; \
+		echo "  Fix with: cd <pkg> && poetry lock --no-update"; \
+		exit 1; \
+	fi; \
+	echo "✓ All $(words $(_TRACKED_LOCKS)) committed locks match their pyproject.toml"
+
 unit-tests-all: tools-venv ## Run pytest for every example step
 	@$(TOOLS_BIN)/python -m pip install --quiet "poetry==$(POETRY_VERSION)" \
 		-r requirements.txt
@@ -352,6 +372,6 @@ pre-commit-checks: tools-venv ## Run all pre-commit hooks on all files
 	@$(TOOLS_BIN)/python -m pip install --quiet "pre-commit==$(PRE_COMMIT_VERSION)"
 	$(TOOLS_BIN)/pre-commit run --all-files
 
-verify: unit-tests-all checkov-modules pre-commit-checks ## All quality gates that need no AWS credentials
+verify: check-locks unit-tests-all checkov-modules pre-commit-checks ## All quality gates that need no AWS credentials
 	@echo ""
-	@echo "✓ unit tests, Checkov (modules), and pre-commit all passed"
+	@echo "✓ locks, unit tests, Checkov (modules), and pre-commit all passed"
