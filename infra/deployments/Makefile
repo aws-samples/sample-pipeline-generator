@@ -29,7 +29,7 @@ SHARED_CODE_PATH = ../../code/shared/$(SHARED_STEP)
 SHARED_REPO_NAME = shared-$(SHARED_STEP)
 SHARED_IMAGE_NAME = $(ECR_REGISTRY)/$(SHARED_REPO_NAME)
 VENV_DIR = .venv
-PYTHON ?= python3.12
+PYTHON ?= python3.13
 
 # Pin build tooling so `unit-tests-shared` is reproducible in CI/CD
 # and a compromised upstream release cannot slip in via a fresh install.

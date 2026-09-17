@@ -96,7 +96,7 @@ The Lambda relies on `INTERMEDIATE_BUCKET` being present in its environment. If 
 
 ### `poetry install` fails with `The current project's Python requirement (...) is not compatible with your Python version`
 
-The step `pyproject.toml` files in `examples/my-pipeline/` currently target `>=3.10,<3.14` and `>=3.10,<4.0`. Install Python 3.12 (matches `PYTHON` in `infra/deployments/Makefile`), or use `poetry env use python3.12` before running the make targets.
+The step `pyproject.toml` files target `>=3.10,<4.0`, but ideal version is 3.13 matching the `python:3.13-slim` build image and the `python3.13` Lambda runtime. Install Python 3.13 (matches `PYTHON` in `infra/deployments/Makefile`), or use `poetry env use python3.13` before running the make targets.
 
 ### `make unit-tests` regenerates `poetry.lock` and my working tree is dirty
 
