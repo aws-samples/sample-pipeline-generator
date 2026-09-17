@@ -2,7 +2,7 @@
 
 # Troubleshooting
 
-Known issues and workarounds for the simple-workflow-generator repository. Referenced from the root [README](README.md), the [modules index](infra/README.md), and the [examples index](examples/README.md).
+Known issues and workarounds for the sample-pipeline-generator repository. Referenced from the root [README](README.md), the [modules index](infra/README.md), and the [examples index](examples/README.md).
 
 ## Table of contents
 

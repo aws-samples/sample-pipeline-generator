@@ -1,6 +1,6 @@
 <!-- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. SPDX-License-Identifier: MIT-0 -->
 
-# simple-workflow-generator
+# sample-pipeline-generator
 
 Easily deployable, YAML-driven data processing pipelines on AWS. Every pipeline is declared in a single `pipeline.yaml` and materialized as a Step Functions state machine that orchestrates AWS Batch (Fargate / Fargate Spot), AWS Lambda, S3 data flow, parallel fan-out, structured logging, and distributed tracing — no orchestration code required.
 

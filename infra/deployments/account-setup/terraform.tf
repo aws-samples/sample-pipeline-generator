@@ -38,7 +38,7 @@ provider "aws" {
   default_tags {
     tags = {
       DeployedBy = "OpenTofu"
-      Repository = "simple-workflow-generator"
+      Repository = "sample-pipeline-generator"
       Code       = "account-setup"
     }
   }
