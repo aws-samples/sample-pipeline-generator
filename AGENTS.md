@@ -138,21 +138,21 @@ make tofu-destroy DEPLOYMENT=<new-name>
 
 Overridable variables: `ENVIRONMENT` (default `dev`), `IMAGE_TAG` (default: read from `pyproject.toml`), `CONTAINER_RUNTIME` (default `docker`; `finch`, `podman` also work).
 
-Every target name here is confirmed against `Makefile` and `infra/deployments/Makefile`. Diff with `grep -E '^[a-zA-Z_-]+:' Makefile infra/deployments/Makefile` if you suspect drift.
+List the available targets with `make help`, or `grep -E '^[a-zA-Z_-]+:' Makefile infra/deployments/Makefile`.
 
 ## Guardrails you MUST obey
 
 - **OpenTofu, not Terraform.** Every command uses `tofu`. Never emit `terraform apply`. Provider constraint: OpenTofu `>= 1.8`.
 - **Conventional Commits.** `feat(scope): …`, `fix(scope): …`, `docs(scope): …`, `test(scope): …`, `refactor(scope): …`, `ci(scope): …`. Scope = module or pipeline name when relevant. Enforced by `gitlint` on `commit-msg`.
-- **Never `git push` without explicit user consent.** Commit locally; wait to be asked.
-- **Stage explicitly.** `git add <files>`, never `git add .` — the repo intentionally gitignores `.tfvars`, `.env`, `.claude/`, and `poetry.lock`. Blind staging risks leaking secrets or dropping unrelated changes into the commit.
-- **Per-module completion contract.** A change to a Terraform module is done only when (1) module code, (2) tests in `iac_tests/main.tftest.hcl`, and (3) the module `README.md` are all updated. A Python change is done only when unit tests and the step's `README.md` are updated.
+- **Never `git push` without being asked.** Commit locally and leave the decision to push to the human.
+- **Stage explicitly.** `git add <files>`, never `git add .` — `.gitignore` excludes `.tfvars`, `.env`, agent configuration, and most lock files, so blind staging pulls in local configuration or sweeps unrelated changes into the commit.
+- **Lock files.** `poetry.lock` is gitignored except for the four steps whose images need it at build time, which `.gitignore` re-includes explicitly. Commit a regenerated lock only for those four; `make check-locks` validates them.
+- **Per-module completion contract.** A change to an OpenTofu module is done only when (1) module code, (2) the module's tests under `iac_tests/*.tftest.hcl`, and (3) the module `README.md` are all updated. A Python change is done only when unit tests and the step's `README.md` are updated.
 - **Security scanners.** Run before declaring done:
-  - Terraform: `make checkov-modules` (or `make checkov-check DEPLOYMENT=<name>` for a single pipeline plan, `make checkov-all` for both).
+  - OpenTofu: `make checkov-modules` (or `make checkov-check DEPLOYMENT=<name>` for a single pipeline plan, `make checkov-all` for both).
   - Python (non-test): `bandit -c .bandit -r <path>`.
-  - GitHub workflows: `actionlint <path>`.
   - Fix every finding, or suppress with a rule ID + written justification.
-- **Pre-commit hooks are the ground truth.** Run `make pre-commit-checks` (equivalently `pre-commit run --all-files`) before requesting a commit. Never `--no-verify`.
+- **Pre-commit hooks are the ground truth.** Run `make pre-commit-checks` (equivalently `pre-commit run --all-files`) before committing. Never `--no-verify`.
 - **Repo-wide gate.** `make verify` chains `check-locks`, `unit-tests-all`, `checkov-modules`, and `pre-commit-checks` and needs no AWS credentials — run it before declaring a multi-file change done. `make integration-tests` covers the deployed-pipeline suites and does need credentials.
 
 ## Fast pointers

@@ -6,6 +6,15 @@ Easily deployable, YAML-driven data processing pipelines on AWS. Every pipeline 
 
 The repository ships as an [AWS sample](https://github.com/aws-samples): a set of reusable OpenTofu modules plus fully deployable example pipelines that consume them by relative path. Clone, `make all`, deploy an example, run it.
 
+> [!IMPORTANT]
+> **This is sample code and is not intended for production use.** It is published for
+> demonstration and educational purposes, and its defaults target a development account
+> rather than a hardened production environment.
+>
+> Review, adapt, and complete your own security testing against your security, reliability,
+> cost, and compliance requirements before deploying any part of it to production. See
+> [Security](#security) for what the modules provide and what they leave to you.
+
 ---
 
 ## Table of contents
@@ -363,7 +372,7 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for the full list. Highlights:
 - **ECR push denied** — the caller's IAM identity needs `ecr:*` on the target repository.
 - **`tofu destroy` fails on non-empty ECR** — set `ecr_force_delete = true` in dev.
 - **`check-image-version` fails** — the ECR tag from `pyproject.toml` already exists; bump the `version` field before rebuilding.
-- **`poetry.lock` regenerates on `make unit-tests`** — commit it, or run with `--no-update`.
+- **`poetry.lock` regenerates on `make unit-tests`** — lock files are gitignored except the four the build needs, which `.gitignore` re-includes explicitly. Commit a regenerated lock only for those four; see [TROUBLESHOOTING.md](TROUBLESHOOTING.md#make-unit-tests-regenerates-poetrylock-and-my-working-tree-is-dirty).
 - **Global pre-commit conflict** — bypass with `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null pre-commit install`.
 
 ---
@@ -371,6 +380,8 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for the full list. Highlights:
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for information on reporting security issues.
+
+The controls below are this sample's defaults, chosen to demonstrate good practice in a development account. They are a starting point, not a completed security review of your workload.
 
 Every module ships with:
 
@@ -381,6 +392,16 @@ Every module ships with:
 - VPC flow logs on account-setup managed VPCs.
 
 Checkov runs against every plan (`make checkov-check`). Suppressions are inline (`checkov:skip=<CHECK_ID>: <justification>`) and reviewable — do not disable Checkov globally.
+
+### Before production use
+
+Run your own security testing and review at least the following against your own requirements:
+
+- IAM policy scope, against your account structure and permission boundaries.
+- KMS key policies, grants, and rotation.
+- VPC and subnet placement, security group egress, and endpoint policies.
+- Data retention, backup, and deletion behaviour of the S3 buckets and log groups.
+- Every Checkov suppression shipped in this repository — each was accepted for a development account, not for yours.
 
 ## License
 

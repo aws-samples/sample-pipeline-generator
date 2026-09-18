@@ -2,7 +2,11 @@
 
 # Infrastructure
 
-OpenTofu modules and deployments for the workflow generator platform.
+OpenTofu modules and deployments for the pipeline generator platform.
+
+> [!NOTE]
+> Sample code — not intended for production use. Read the [disclaimer](../README.md) and
+> [security notes](../README.md#security) before deploying.
 
 ## Directory structure
 

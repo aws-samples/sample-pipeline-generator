@@ -1,10 +1,14 @@
 <!-- Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. SPDX-License-Identifier: MIT-0 -->
 
-# Workflow Generator Examples
+# Pipeline Generator Examples
 
 Example pipelines that show how to deploy data-processing workflows on AWS using the platform modules in this repository. Each example pipeline is a self-contained directory with its own infrastructure (OpenTofu), step code (Python + Docker), per-environment configuration, and a `pipeline.yaml` that declares the Step Functions topology.
 
 Start your own project by **copying one of these example directories** (or this whole `examples/` folder) and editing YAML — orchestration, compute, storage, fan-out, and observability are provided by the platform modules under [`../infra/modules/`](../infra/modules). No orchestration code is required. The examples reference those modules via **relative paths**, so they work directly from a clone of this repository.
+
+> [!NOTE]
+> Sample code — not intended for production use. Read the [disclaimer](../README.md) and
+> [security notes](../README.md#security) before deploying.
 
 > Paths in this guide are written relative to the `examples/` directory (where [`scaffold.py`](scaffold.py) lives). Run `./scaffold.py` from here and `make` from the repository root.
 
