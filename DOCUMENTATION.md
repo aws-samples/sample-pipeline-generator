@@ -4,6 +4,10 @@
 
 Quick jump table by intent. For the primary index and repository overview, see [`README.md`](README.md).
 
+> [!NOTE]
+> Sample code — not intended for production use. Read the [disclaimer](README.md) and
+> [security notes](README.md#security) before deploying.
+
 ## Where to find what
 
 | I want to... | Go to |

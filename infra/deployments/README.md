@@ -4,6 +4,10 @@
 
 Account-level infrastructure setup. This directory contains the OpenTofu root module for bootstrapping a new AWS account and the Makefile that drives it.
 
+> [!NOTE]
+> Sample code — not intended for production use. Read the [disclaimer](../../README.md) and
+> [security notes](../../README.md#security) before deploying.
+
 ## Directory structure
 
 ```
